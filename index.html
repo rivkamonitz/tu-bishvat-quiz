@@ -249,6 +249,40 @@
             margin-bottom: 20px;
         }
 
+        .waiting-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .waiting-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .waiting-message {
+            font-size: 1.5em;
+            color: #666;
+            margin: 30px 0;
+            line-height: 1.8;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .score-display {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -430,9 +464,15 @@
             <h2>סיימת את החידון!</h2>
             <div class="score-display" id="scoreDisplay"></div>
             <div class="score-message" id="scoreMessage"></div>
-            <div class="button-group">
-                <button class="btn" onclick="showLeaderboard()">🏆 לוח המנצחים</button>
-                <button class="btn btn-secondary" onclick="restartQuiz()">🔄 שחק שוב</button>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div class="waiting-screen" id="waitingScreen">
+            <h2>⏳ ממתין לחשיפת התוצאות</h2>
+            <div class="spinner"></div>
+            <div class="waiting-message">
+                המנחה יחשוף את לוח המנצחים בקרוב...<br>
+                הישארו מחוברים! 🌳
             </div>
         </div>
 
@@ -447,7 +487,25 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA54lwy0Q4aBmGB9Zixpc4DzgkWNLGYcU8",
+            authDomain: "tu-bishvat-quiz.firebaseapp.com",
+            databaseURL: "https://tu-bishvat-quiz-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tu-bishvat-quiz",
+            storageBucket: "tu-bishvat-quiz.firebasestorage.app",
+            messagingSenderId: "770147904766",
+            appId: "1:770147904766:web:a71ef3db5d28f6d49c89af"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const questions = [
             {
                 question: "מהי צורת הרבים של המילה סלסילה?",
@@ -776,39 +834,67 @@
             
             document.getElementById('resultEmoji').textContent = emoji;
             document.getElementById('scoreMessage').textContent = message + ` השגת ${percentage}% תשובות נכונות.`;
+            
+            // Show waiting screen after 3 seconds
+            setTimeout(() => {
+                document.getElementById('resultsScreen').style.display = 'none';
+                document.getElementById('waitingScreen').style.display = 'block';
+                listenForLeaderboardReveal();
+            }, 3000);
+        }
+
+        function listenForLeaderboardReveal() {
+            // Listen for admin reveal
+            database.ref('settings/revealLeaderboard').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    showLeaderboard();
+                }
+            });
         }
 
         function saveScore() {
-            const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
-            scores.push({
+            const scoreData = {
                 name: playerName,
                 score: score,
                 total: questions.length,
                 percentage: Math.round((score / questions.length) * 100),
-                date: new Date().toISOString()
+                timestamp: Date.now()
+            };
+            
+            // Save to Firebase
+            database.ref('scores').push(scoreData).catch(error => {
+                console.error('Error saving to Firebase:', error);
             });
-            localStorage.setItem('quizScores', JSON.stringify(scores));
         }
 
         function showLeaderboard() {
             document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('waitingScreen').style.display = 'none';
             document.getElementById('leaderboardScreen').style.display = 'block';
             
-            const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
-            scores.sort((a, b) => {
-                if (b.score !== a.score) return b.score - a.score;
-                return new Date(a.date) - new Date(b.date);
-            });
-            
             const leaderboardList = document.getElementById('leaderboardList');
-            leaderboardList.innerHTML = '';
+            leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">טוען תוצאות...</p>';
             
-            if (scores.length === 0) {
-                leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">עדיין אין תוצאות</p>';
-                return;
-            }
-            
-            scores.forEach((result, index) => {
+            // Load from Firebase
+            database.ref('scores').once('value').then(snapshot => {
+                const scores = [];
+                snapshot.forEach(childSnapshot => {
+                    scores.push(childSnapshot.val());
+                });
+                
+                scores.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return a.timestamp - b.timestamp;
+                });
+                
+                leaderboardList.innerHTML = '';
+                
+                if (scores.length === 0) {
+                    leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">עדיין אין תוצאות</p>';
+                    return;
+                }
+                
+                scores.forEach((result, index) => {
                 const li = document.createElement('li');
                 li.className = 'leaderboard-item';
                 
@@ -830,13 +916,21 @@
                 `;
                 
                 leaderboardList.appendChild(li);
+                });
+            }).catch(error => {
+                console.error('Error loading leaderboard:', error);
+                leaderboardList.innerHTML = '<p style="text-align: center; color: #e74c3c;">שגיאה בטעינת התוצאות</p>';
             });
         }
 
         function clearLeaderboard() {
             if (confirm('האם אתה בטוח שברצונך למחוק את כל התוצאות?')) {
-                localStorage.removeItem('quizScores');
-                showLeaderboard();
+                database.ref('scores').remove().then(() => {
+                    showLeaderboard();
+                }).catch(error => {
+                    console.error('Error clearing leaderboard:', error);
+                    alert('שגיאה במחיקת הנתונים');
+                });
             }
         }
 
