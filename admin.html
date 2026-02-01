@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פאנל מנחה - חידון ט"ו בשבט</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Heebo', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .stat-card .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .control-panel h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .button-grid {
+            display: grid;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .admin-btn {
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .admin-btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-reveal {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-reveal.active {
+            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #e67e22 0%, #e74c3c 100%);
+            color: white;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+            color: white;
+        }
+
+        .scores-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .scores-section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .scores-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .score-item {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 4px solid #3498db;
+        }
+
+        .score-item.top-score {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-right-color: #ffd700;
+        }
+
+        .score-info {
+            flex: 1;
+        }
+
+        .score-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .score-details {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #2ecc71;
+        }
+
+        .status-indicator.inactive {
+            background: #e74c3c;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .timestamp {
+            font-size: 0.85em;
+            color: #95a5a6;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .admin-btn {
+                font-size: 1.1em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 פאנל מנחה - חידון ט"ו בשבט</h1>
+            <p class="subtitle">ניהול ובקרה מרכזית</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">👥</div>
+                <div class="value" id="totalParticipants">0</div>
+                <div class="label">משתתפים</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon">🏆</div>
+                <div class="value" id="highScore">0</div>
+                <div class="label">ציון הגבוה ביותר</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon">📊</div>
+                <div class="value" id="avgScore">0%</div>
+                <div class="label">ממוצע</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2>⚙️ בקרת חידון</h2>
+            <div class="button-grid">
+                <button class="admin-btn btn-reveal" id="revealBtn" onclick="toggleReveal()">
+                    <span id="revealText">🏆 חשוף לוח מנצחים לכולם</span>
+                    <span class="status-indicator inactive" id="revealStatus"></span>
+                </button>
+                <button class="admin-btn btn-reset" onclick="resetReveal()">
+                    🔄 אפס מצב חשיפה
+                </button>
+                <button class="admin-btn btn-clear" onclick="clearAllScores()">
+                    🗑️ מחק את כל התוצאות
+                </button>
+            </div>
+        </div>
+
+        <div class="scores-section">
+            <h2>📋 תוצאות בזמן אמת</h2>
+            <ul class="scores-list" id="scoresList">
+                <li class="empty-state">טוען נתונים...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA54lwy0Q4aBmGB9Zixpc4DzgkWNLGYcU8",
+            authDomain: "tu-bishvat-quiz.firebaseapp.com",
+            databaseURL: "https://tu-bishvat-quiz-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tu-bishvat-quiz",
+            storageBucket: "tu-bishvat-quiz.firebasestorage.app",
+            messagingSenderId: "770147904766",
+            appId: "1:770147904766:web:a71ef3db5d28f6d49c89af"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let isRevealed = false;
+
+        // Listen to reveal status
+        database.ref('settings/revealLeaderboard').on('value', (snapshot) => {
+            isRevealed = snapshot.val() === true;
+            updateRevealButton();
+        });
+
+        // Listen to scores in real-time
+        database.ref('scores').on('value', (snapshot) => {
+            const scores = [];
+            snapshot.forEach(childSnapshot => {
+                scores.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+
+            updateStats(scores);
+            displayScores(scores);
+        });
+
+        function updateRevealButton() {
+            const btn = document.getElementById('revealBtn');
+            const text = document.getElementById('revealText');
+            const status = document.getElementById('revealStatus');
+
+            if (isRevealed) {
+                btn.classList.add('active');
+                text.textContent = '👁️ לוח המנצחים פעיל';
+                status.classList.remove('inactive');
+                status.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+                text.textContent = '🏆 חשוף לוח מנצחים לכולם';
+                status.classList.remove('active');
+                status.classList.add('inactive');
+            }
+        }
+
+        function toggleReveal() {
+            const newStatus = !isRevealed;
+            database.ref('settings/revealLeaderboard').set(newStatus).then(() => {
+                console.log('Reveal status updated:', newStatus);
+            }).catch(error => {
+                console.error('Error updating reveal status:', error);
+                alert('שגיאה בעדכון המצב');
+            });
+        }
+
+        function resetReveal() {
+            if (confirm('האם לאפס את מצב חשיפת לוח המנצחים?')) {
+                database.ref('settings/revealLeaderboard').set(false).then(() => {
+                    alert('מצב החשיפה אופס בהצלחה');
+                }).catch(error => {
+                    console.error('Error resetting reveal:', error);
+                    alert('שגיאה באיפוס המצב');
+                });
+            }
+        }
+
+        function clearAllScores() {
+            if (confirm('⚠️ האם אתה בטוח שברצונך למחוק את כל התוצאות?\n\nפעולה זו אינה הפיכה!')) {
+                if (confirm('אישור נוסף: פעולה זו תמחק את כל הנתונים לצמיתות.')) {
+                    database.ref('scores').remove().then(() => {
+                        alert('✅ כל התוצאות נמחקו בהצלחה');
+                    }).catch(error => {
+                        console.error('Error clearing scores:', error);
+                        alert('❌ שגיאה במחיקת התוצאות');
+                    });
+                }
+            }
+        }
+
+        function updateStats(scores) {
+            const totalParticipants = scores.length;
+            const highScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
+            const avgPercentage = scores.length > 0 
+                ? Math.round(scores.reduce((sum, s) => sum + s.percentage, 0) / scores.length) 
+                : 0;
+
+            document.getElementById('totalParticipants').textContent = totalParticipants;
+            document.getElementById('highScore').textContent = highScore + '/27';
+            document.getElementById('avgScore').textContent = avgPercentage + '%';
+        }
+
+        function displayScores(scores) {
+            const scoresList = document.getElementById('scoresList');
+
+            if (scores.length === 0) {
+                scoresList.innerHTML = '<li class="empty-state">אין תוצאות עדיין 📝</li>';
+                return;
+            }
+
+            // Sort by score, then by timestamp
+            scores.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.timestamp - b.timestamp;
+            });
+
+            scoresList.innerHTML = '';
+
+            scores.forEach((result, index) => {
+                const li = document.createElement('li');
+                li.className = 'score-item';
+                
+                if (index === 0) {
+                    li.classList.add('top-score');
+                }
+
+                const date = new Date(result.timestamp);
+                const timeStr = date.toLocaleTimeString('he-IL', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+
+                let medal = '';
+                if (index === 0) medal = '🥇';
+                else if (index === 1) medal = '🥈';
+                else if (index === 2) medal = '🥉';
+                else medal = `#${index + 1}`;
+
+                li.innerHTML = `
+                    <div class="score-info">
+                        <div class="score-name">${medal} ${result.name}</div>
+                        <div class="score-details">
+                            ${result.score}/${result.total} נקודות (${result.percentage}%)
+                            <span class="timestamp">• ${timeStr}</span>
+                        </div>
+                    </div>
+                    <div class="score-value">${result.percentage}%</div>
+                `;
+
+                scoresList.appendChild(li);
+            });
+        }
+
+        // Auto-refresh stats every 2 seconds
+        setInterval(() => {
+            console.log('Dashboard active - Real-time updates running');
+        }, 2000);
+    </script>
+</body>
+</html>
+
