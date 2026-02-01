@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חידון ט"ו בשבט - מרובה משתתפים</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Heebo', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .name-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .name-screen h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .name-screen p {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .name-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quiz-screen {
+            display: none;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .question-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .player-name {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-right: 5px solid #667eea;
+        }
+
+        .question h3 {
+            color: #333;
+            font-size: 1.5em;
+            line-height: 1.6;
+        }
+
+        .answers {
+            display: grid;
+            gap: 15px;
+        }
+
+        .answer {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1em;
+            text-align: right;
+        }
+
+        .answer:hover {
+            border-color: #667eea;
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .answer.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .answer.correct {
+            background: #2ecc71;
+            color: white;
+            border-color: #2ecc71;
+            animation: correctPulse 0.5s;
+        }
+
+        .answer.wrong {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+            animation: shake 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-screen {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .results-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 30px 0;
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .score-message {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-screen {
+            display: none;
+            padding: 20px;
+        }
+
+        .leaderboard-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-item {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 5px solid #667eea;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .leaderboard-item.first {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-right-color: #ffd700;
+        }
+
+        .leaderboard-item.second {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            border-right-color: #c0c0c0;
+        }
+
+        .leaderboard-item.third {
+            background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%);
+            border-right-color: #cd7f32;
+        }
+
+        .leaderboard-rank {
+            font-size: 2em;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            text-align: right;
+        }
+
+        .leaderboard-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .leaderboard-score {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .question h3 {
+                font-size: 1.2em;
+            }
+            
+            .answer {
+                padding: 15px;
+                font-size: 1em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌳 חידון ט"ו בשבט 🌳</h1>
+            <p>האקדמיה ללשון העברית - מרובה משתתפים</p>
+        </div>
+
+        <!-- Name Entry Screen -->
+        <div class="name-screen" id="nameScreen">
+            <h2>ברוכים הבאים!</h2>
+            <p>
+                חידון מיוחד על לשון עברית, צמחים ובוטניקה לכבוד ט"ו בשבט.<br>
+                <strong>27 שאלות</strong> מאתגרות ומעניינות<br>
+                כל שאלה עם <strong>30 שניות</strong> לענות<br>
+                בסיום נראה את לוח המנצחים!
+            </p>
+            <input type="text" id="playerName" class="name-input" placeholder="הזן/י את שמך" maxlength="20">
+            <br>
+            <button class="btn" onclick="startQuiz()">🎯 התחל חידון</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="question-info">
+                <span>שאלה <span id="currentQuestion">1</span> מתוך <span id="totalQuestions">27</span></span>
+                <div>
+                    <span class="player-name" id="playerNameDisplay"></span>
+                    <span class="timer" id="timer">30</span>
+                </div>
+            </div>
+
+            <div class="question" id="questionContainer">
+                <h3 id="questionText"></h3>
+            </div>
+
+            <div class="answers" id="answersContainer"></div>
+
+            <button class="btn next-btn" id="nextBtn" onclick="nextQuestion()">השאלה הבאה ←</button>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="emoji" id="resultEmoji"></div>
+            <h2>סיימת את החידון!</h2>
+            <div class="score-display" id="scoreDisplay"></div>
+            <div class="score-message" id="scoreMessage"></div>
+            <div class="button-group">
+                <button class="btn" onclick="showLeaderboard()">🏆 לוח המנצחים</button>
+                <button class="btn btn-secondary" onclick="restartQuiz()">🔄 שחק שוב</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div class="leaderboard-screen" id="leaderboardScreen">
+            <h2>🏆 לוח המנצחים 🏆</h2>
+            <ul class="leaderboard-list" id="leaderboardList"></ul>
+            <div class="button-group">
+                <button class="btn" onclick="restartQuiz()">🔄 שחק שוב</button>
+                <button class="btn btn-secondary" onclick="clearLeaderboard()">🗑️ נקה לוח</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "מהי צורת הרבים של המילה סלסילה?",
+                answers: ["סלסילות", "סלסלאות"],
+                correct: 0
+            },
+            {
+                question: 'מה פירוש המילה "פרי" בתנ"ך?',
+                answers: ["תפוח", "שם קיבוצי לתנובת הצמח", "שם כללי לפריחה"],
+                correct: 1
+            },
+            {
+                question: "מה ההבדל בין עץ לאילן?",
+                answers: [
+                    "עץ הוא שם כולל לעצים, אילן הוא שם לעצי ארץ ישראל",
+                    "אלו מילים נרדפות – עץ מלשון המקרא ואילן מלשון חכמים",
+                    "המילה עץ היא מארמית והמילה אילן היא המקבילה בעברית"
+                ],
+                correct: 1
+            },
+            {
+                question: "איזה משפט אינו נכון?",
+                answers: [
+                    "מבחינה בוטנית מלפפון ובננה הם פירות",
+                    "בשימוש המקובל מלפפון הוא ירק, ובננה היא פרי",
+                    "על מלפפון מברכים בורא פרי האדמה ועל בננה בורא פרי העץ"
+                ],
+                correct: 2
+            },
+            {
+                question: "שם התואר אָשׁוּן הניתן לצמחים כמו 'דוחן אשון', 'אספספת אשונה' – פירושו:",
+                answers: ["נוקשה, לא גמיש", "זקוף כאיש", "בעל גוון מעושן"],
+                correct: 1
+            },
+            {
+                question: "נכון או לא נכון – האם קיים צמח ששמו עַפְעַפִּית רַבַּת־פְּרָחִים?",
+                answers: ["נכון", "לא נכון"],
+                correct: 0
+            },
+            {
+                question: "מהי עַלְוָה?",
+                answers: [
+                    "צמח מדברי שנפוץ באזור הנגב",
+                    "כל העלים בעץ או בשיח",
+                    "ציפור קטנה ממשפחת הסיבכיים"
+                ],
+                correct: 1
+            },
+            {
+                question: "מהו אֶשְׁבּוֹל?",
+                answers: [
+                    "אשכול בננות",
+                    "תפרחת שבה הפרחים סדורים לאורך שזרה מעובה",
+                    "שדה שיבולים"
+                ],
+                correct: 1
+            },
+            {
+                question: "איזו עוד משמעות יש למילה 'חָצָב' מלבד שמו של הצמח?",
+                answers: ["מעמד למצלמה", "כלי עבודה של החוצב", "כד"],
+                correct: 1
+            },
+            {
+                question: 'מה הייתה הסתוונית בלשון חז"ל?',
+                answers: [
+                    "מין צמח אבל אחר",
+                    "שמה של עונת מעבר נוספת, שלא קיימת היום",
+                    "פרי של חורף"
+                ],
+                correct: 1
+            },
+            {
+                question: "איך נכון לומר – לנטוע או לטעת?",
+                answers: ["לנטוע", "לטעת", "שתי הצורות נכונות"],
+                correct: 2
+            },
+            {
+                question: "איך נכון לומר?",
+                answers: ["שְׁתִיל", "שָׁתִיל"],
+                correct: 0
+            },
+            {
+                question: "שקמים ירוקים או שקמים ירוקות?",
+                answers: ["ירוקות", "ירוקים"],
+                correct: 1
+            },
+            {
+                question: "האם מטע זיתים יכול להיקרא גם כרם זיתים?",
+                answers: ["כן", "לא"],
+                correct: 0
+            },
+            {
+                question: "מה מקורה של המילה בוסתן?",
+                answers: ["פרסית", "ערבית", "ארמית"],
+                correct: 0
+            },
+            {
+                question: "איך נקראת השכבה הלבנה בקליפת פירות ההדר בעברית?",
+                answers: ["אלבדו", "לִבְנָה", "קרום ההדר", "מרה"],
+                correct: 1
+            },
+            {
+                question: "מהי גרוגרת?",
+                answers: [
+                    "שקית זרעים המיועדים לשתילה",
+                    "תאנה מיובשת",
+                    "החלופה העברית ל'קומפוסט'",
+                    "פיקת הגרון"
+                ],
+                correct: 1
+            },
+            {
+                question: 'מה פירוש הביטוי "נתלה באילן גבוה"?',
+                answers: [
+                    "ציפה יותר מדי והתאכזב",
+                    "דמיין שהוא מגיע לגדולות",
+                    "הסתמך על מי שמבין בדבר"
+                ],
+                correct: 2
+            },
+            {
+                question: "מה צורת הרבים של דלעת?",
+                answers: ["דלעות", "דלועים"],
+                correct: 1
+            },
+            {
+                question: "נכון או לא נכון – אִילָנַאי הוא אדם העוסק בטיפוח עצים ובטיפול בהם.",
+                answers: ["נכון", "לא נכון"],
+                correct: 0
+            },
+            {
+                question: "מהו 'אילן סְרָק'?",
+                answers: [
+                    "עץ שמשיר את כל עליו בשלכת",
+                    "עץ שפירותיו רעילים",
+                    "עץ שאינו נותן פירות מאכל",
+                    "עץ שפריחתו מדיפה ריח רע"
+                ],
+                correct: 2
+            },
+            {
+                question: "מה משמעות המשל 'דַּבֵּר אֶל הָעֵצִים וְאֶל הָאֲבָנִים'?",
+                answers: [
+                    "פְּעַל בניגוד לעצות שקיבלת",
+                    "דבר אל הקיר, דבר בלי שמישהו יקשיב לך",
+                    "אל תקשיב לאיש"
+                ],
+                correct: 1
+            },
+            {
+                question: "מהו 'עץ חיים'?",
+                answers: [
+                    "מקל שיריעת ספר התורה מגולגלת עליו",
+                    "כינוי לעץ העתיק ביותר בישראל, נמצא בעיר העתיקה בעכו",
+                    "שם של שיר מתוך הסרט 'מלך האריות'",
+                    "משל לחייו של האדם"
+                ],
+                correct: 0
+            },
+            {
+                question: 'נכון או לא נכון – האם יש צמח שנקרא "נַהֲלוֹל"?',
+                answers: ["נכון", "לא נכון"],
+                correct: 0
+            },
+            {
+                question: 'מה משמעות המילה קיפח בשם הצמח "גזר קיפח"?',
+                answers: [
+                    "מקופח (כי אין לו פירות)",
+                    "דק וגבוה מאוד",
+                    "שפרחיו פקוחים לרווחה",
+                    'בריאותי (נגזר מראשי התיבות קופ"ח)'
+                ],
+                correct: 2
+            },
+            {
+                question: "איזו מילה אינה מילה נרדפת לענף?",
+                answers: ["בַּד", "סְעִיף", "עֵצָה", "פּארָה"],
+                correct: 2
+            },
+            {
+                question: "איזה משמות התואר אינו מתאר צורה של עלה?",
+                answers: ["מְאֻצְבָּע", "מְנֶצֶה", "מְשֻׁלְחָף", "מְשֶׁנָּן"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 30;
+        let timerInterval;
+        let answered = false;
+        let playerName = '';
+
+        function startQuiz() {
+            const nameInput = document.getElementById('playerName');
+            playerName = nameInput.value.trim();
+            
+            if (!playerName) {
+                alert('נא להזין שם לפני התחלת החידון');
+                return;
+            }
+            
+            document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'block';
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('playerNameDisplay').textContent = playerName;
+            loadQuestion();
+            startTimer();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            document.getElementById('timer').classList.remove('warning');
+            document.getElementById('nextBtn').style.display = 'none';
+            
+            const question = questions[currentQuestionIndex];
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer';
+                answerDiv.textContent = String.fromCharCode(1488 + index) + '. ' + answer;
+                answerDiv.onclick = () => selectAnswer(index);
+                answersContainer.appendChild(answerDiv);
+            });
+            
+            updateProgress();
+        }
+
+        function selectAnswer(selectedIndex) {
+            if (answered) return;
+            
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestionIndex];
+            const answers = document.querySelectorAll('.answer');
+            
+            answers.forEach((answer, index) => {
+                if (index === question.correct) {
+                    answer.classList.add('correct');
+                } else if (index === selectedIndex) {
+                    answer.classList.add('wrong');
+                }
+                answer.style.pointerEvents = 'none';
+            });
+            
+            if (selectedIndex === question.correct) {
+                score++;
+            }
+            
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+                startTimer();
+            } else {
+                showResults();
+            }
+        }
+
+        function startTimer() {
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeLeft;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (!answered) {
+                        selectAnswer(-1);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            saveScore();
+            
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('scoreDisplay').textContent = score + ' / ' + questions.length;
+            
+            let emoji, message;
+            
+            if (percentage >= 90) {
+                emoji = '🏆';
+                message = 'מדהים! אתם מומחים אמיתיים ללשון העברית!';
+            } else if (percentage >= 75) {
+                emoji = '🌟';
+                message = 'כל הכבוד! ידע מרשים מאוד!';
+            } else if (percentage >= 60) {
+                emoji = '👏';
+                message = 'יפה מאוד! תוצאה טובה!';
+            } else if (percentage >= 40) {
+                emoji = '📚';
+                message = 'לא רע! יש עוד מה ללמוד.';
+            } else {
+                emoji = '💪';
+                message = 'אל תוותרו! נסו שוב ותשתפרו!';
+            }
+            
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('scoreMessage').textContent = message + ` השגת ${percentage}% תשובות נכונות.`;
+        }
+
+        function saveScore() {
+            const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
+            scores.push({
+                name: playerName,
+                score: score,
+                total: questions.length,
+                percentage: Math.round((score / questions.length) * 100),
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('quizScores', JSON.stringify(scores));
+        }
+
+        function showLeaderboard() {
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'block';
+            
+            const scores = JSON.parse(localStorage.getItem('quizScores') || '[]');
+            scores.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            
+            if (scores.length === 0) {
+                leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">עדיין אין תוצאות</p>';
+                return;
+            }
+            
+            scores.forEach((result, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                
+                if (index === 0) li.classList.add('first');
+                else if (index === 1) li.classList.add('second');
+                else if (index === 2) li.classList.add('third');
+                
+                let rankEmoji = index + 1;
+                if (index === 0) rankEmoji = '🥇';
+                else if (index === 1) rankEmoji = '🥈';
+                else if (index === 2) rankEmoji = '🥉';
+                
+                li.innerHTML = `
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-name">${result.name}</div>
+                        <div class="leaderboard-score">${result.score}/${result.total} נקודות (${result.percentage}%)</div>
+                    </div>
+                    <div class="leaderboard-rank">${rankEmoji}</div>
+                `;
+                
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        function clearLeaderboard() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל התוצאות?')) {
+                localStorage.removeItem('quizScores');
+                showLeaderboard();
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'none';
+            document.getElementById('nameScreen').style.display = 'block';
+            document.getElementById('playerName').value = '';
+        }
+    </script>
+</body>
+</html>
